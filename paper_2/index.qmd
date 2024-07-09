@@ -7,9 +7,8 @@ format:
     transition: fade
     incremental: true 
     theme: default
-    footer: "Slides URL: <https://patrickli-milestone-3.netlify.app>"
+    footer: "Slides URL: <https://patrickli-useR.netlify.app>"
     logo: figures/monash-stacked-blue-rgb.png
-    self-contained: true
 ---
 
 ```{r setup, include=FALSE}
@@ -21,13 +20,14 @@ knitr::opts_chunk$set(
 )
 
 library(tidyverse)
+library(glue)
 ```
 
-## Advances in Artificial Intelligence for Data Visualization: Automated Reading of Residual Plots with Computer Vision {.center style="text-align: right;"}
+## autovi: Automated Assessment of Residual Plots Using Computer Vision {.center style="text-align: right;"}
 
 ::: {style="color: #5A5A5A"}
 
-Pre-submission Review
+useR! 2024
 
 :::
 
@@ -42,7 +42,7 @@ Monash University
 
 ---
 
-## ✍️Supervisors
+## ✍️Co-authors {visibility="hidden"}
 
 ::: {.columns style="font-size:50%"}
 
@@ -83,19 +83,12 @@ Senior Lecturer Klaus Ackermann, Department of Econometrics and Business Statist
 
 ---
 
-## 📚Thesis Structure
+## 📝Overview
 
-1. Exploring the application of visual inference in regression diagnostics and comparing it with conventional hypothesis tests.
-
-2. **Designing an automated visual inference system to assess residual plots of classical normal linear regression model.**
-
-3. Deploying the automatic visual inference system as an online application and publishing the relevant open-source software.
-
-::: {.fragment}
-
-This presentation will be focused on the **second project**. 
-
-:::
+1. Brief introduction to lineup
+2. Outline of the computer vision model
+3. `autovi` Package
+4. Shiny app demo
 
 ---
 
@@ -184,7 +177,7 @@ mod$gen_lineup(300, k = 20, pos = 11) %>%
 Typically, a **lineup** of residual plots consists of 
 
 <!-- - $m$ randomly placed plots -->
-- one **data plot**
+- one **actual residual plot**
 - $19$ **null plots** containing residuals **simulated from the fitted model**.
 
 :::
@@ -227,25 +220,22 @@ To perform a visual test
 
 Modern **computer vision models** are well-suited for addressing this challenge. 
 
-It is usually built on a **deep neural network** called **convolutional neural network** (CNN).
-
 ![Source: https://en.wikipedia.org/wiki/Convolutional_neural_network](figures/Typical_cnn.png)
 
 ---
 
 ## 📏Measure the Difference
 
-To develop a computer vision model for assessing lineups of residual plots, we need to define a **numerical measure** of **"difference"** or **"distance"** between plots.
+To develop computer vision models assessing lineups of residual plots, we need to define a **numerical measure** of **"difference"** or **"distance"** between plots.
 
 - pixel-wise sum of square differences
 - Structural Similarity Index Measure (SSIM)
 - scagnostics
-- metric learning
 - ...
 
 ---
 
-## 🎲Residual Distribution
+## 🎲Residual Distribution {visibility="hidden"}
 
 Consider the **classical normal linear regression model**
 
@@ -261,126 +251,59 @@ We treat $\boldsymbol{e}$ as **a vector of random variables** here.
 ---
 
 
-## 🎲Residual Distribution
+## 🎲Residual Distribution {visibility="hidden"}
 
-::: {style="font-size:80%"}
+For a **correctly specified model**, $$\boldsymbol{e} \sim N(\boldsymbol{0}_n, \text{diag}(\boldsymbol{R}\sigma^2)).$$ 
 
-The **minimization of the sum of square residuals** implies  
-$$\sum_{i=1}^{n} e_i = 0 \quad\text{and}\quad \text{rank}(\boldsymbol{R}) = n - 1.$$
-
-Thus, $\boldsymbol{e}$ follows a **degenerate multivariate distribution**.
-
-For simplicity, we will replace $\text{cov}(\boldsymbol{e}, \boldsymbol{e}) = \boldsymbol{R}\sigma^2\boldsymbol{R}' = \boldsymbol{R}\sigma^2$ with a **full-rank diagonal matrix** $\text{diag}(\boldsymbol{R}\sigma^2)$.
-
-Then for a **correctly specified model**, $$\boldsymbol{e} \sim N(\boldsymbol{0}_n, \text{diag}(\boldsymbol{R}\sigma^2)).$$ 
+For simplicity, we will replace $\text{cov}(\boldsymbol{e}, \boldsymbol{e}) = \boldsymbol{R}\boldsymbol{R}'\sigma^2 = \boldsymbol{R}\sigma^2$ with a **full-rank diagonal matrix** $\text{diag}(\boldsymbol{R}\sigma^2)$.
 
 Symbol $Q$ will be used to represent this **reference residual distribution**. 
 
-:::
 
 
 ---
 
-## 🎲Residual Distribution
+## 🎲Residual Distribution {visibility="hidden"}
+
+::: {style="font-size:80%"}
 
 However, if the model is **misspecified**, then the **actual residual distribution** denoted as $P$, will be **different** from $Q$.
 
-- For example, if $\boldsymbol{\varepsilon} \sim N(\boldsymbol{0}_n,\boldsymbol{V})$, where $\boldsymbol{V} \neq \sigma^2\boldsymbol{I}_n$,  $$\boldsymbol{e} \sim N(\boldsymbol{0}_n, \text{diag}(\boldsymbol{R}\boldsymbol{V}\boldsymbol{R})) \implies \text{Heteroskedasticity}.$$
+- If $\boldsymbol{\varepsilon} \sim N(\boldsymbol{0}_n,\boldsymbol{V})$, where $\boldsymbol{V} \neq \sigma^2\boldsymbol{I}_n$,  $$\boldsymbol{e} \sim N(\boldsymbol{0}_n, \text{diag}(\boldsymbol{R}\boldsymbol{V}\boldsymbol{R})) \implies \text{Heteroskedasticity}.$$
 
 - And if some necessary higher-order predictors $\boldsymbol{Z}$ are also omitted, $$\boldsymbol{e} \sim N(\boldsymbol{R}\boldsymbol{Z}\boldsymbol{\beta}_z, \text{diag}(\boldsymbol{R}\boldsymbol{V}\boldsymbol{R})) \implies \text{Non-linearity}~ \& ~\text{Heteroskedasticity}.$$
+
+:::
 
 ---
 
 ## 📏KL Divergence of $P$ from $Q$
 
+::: {style="font-size:80%"}
+
 We defined a **distance measure** based on **Kullback-Leibler divergence** to quantify the **extent of model violations**
 
 \begin{align}
 \label{eq:kl-0}
-D &= \log\left(1 + D_{KL}\right), \\
-\label{eq:kl-1}
-D_{KL} &= \int_{\mathbb{R}^{n}}\log\frac{p(\boldsymbol{e})}{q(\boldsymbol{e})}p(\boldsymbol{e})d\boldsymbol{e},
+D &= \log\left(1 + \int_{\mathbb{R}^{n}}\log\frac{p(\boldsymbol{e})}{q(\boldsymbol{e})}p(\boldsymbol{e})d\boldsymbol{e}\right), \\
 \end{align}
 
-\noindent where $p(.)$ and $q(.)$ are the probability density functions for distribution $P$ and $Q$ respectively.
+- $P$: **reference residual distribution** assumed under correct model specification.
+- $Q$: **actual residual distribution**.
 
 - $D = 0$ if and only if $P \equiv Q$.
-
-
----
-
-## 📝Evaluation of $D$ for Normal $\boldsymbol{\varepsilon}$
-
-::: {style="font-size:80%"}
-
-For a **classical normal linear regression model** that omits necessary higher-order predictors $\boldsymbol{Z}$, and incorrectly assumes $\boldsymbol{\varepsilon} \sim N(\boldsymbol{0}_n,\sigma^2\boldsymbol{I}_n)$ while in fact $\boldsymbol{\varepsilon} \sim N(\boldsymbol{0}_n, \boldsymbol{V})$ with $\boldsymbol{V} \neq \sigma^2\boldsymbol{I}_n$, the KL divergence can be further expanded to
-
-
-\begin{align}
-\label{eq:kl-2}
-D_{KL} &= \frac{1}{2}\left(\log\frac{|\boldsymbol{W}|}{|\text{diag}(\boldsymbol{R}\sigma^2)|} - n + \text{tr}(\boldsymbol{W}^{-1}\text{diag}(\boldsymbol{R}\sigma^2)) + \boldsymbol{\mu}_z'\boldsymbol{W}^{-1}\boldsymbol{\mu}_z\right),
-\end{align}
-
-where $\boldsymbol{\mu}_z = \boldsymbol{R}\boldsymbol{Z}\boldsymbol{\beta}_z$, and $\boldsymbol{W} = \text{diag}(\boldsymbol{R}\boldsymbol{V}\boldsymbol{R})$. 
-
-- The assumed error variance $\sigma^2$ is set to be $\text{tr}(\boldsymbol{V})/n$, which is the expectation of the estimated variance.
+- However, $Q$ is typically unknown $\Rightarrow$ $D$ can not be computed.
 
 :::
 
 
 ---
 
-## 📝Evaluation of $D$ for Non-normal $\boldsymbol{\varepsilon}$
-
-
-
-For non-normal $\boldsymbol{\varepsilon}$, $P$ is **unlikely to be a well-known distribution**.
-
-- difficult to compute $p(\boldsymbol{e})$. 
-- difficult to do numerical integration over the $n$ dimensional space, because $n$ could be **potentially very large**.  
+## 🎯Estimation of the Distance
 
 ::: {.fragment}
 
-Therefore, the elements of $\boldsymbol{e}$ are assumed to be **independent of each other**.
-
-:::
-
----
-
-
-## 📝Evaluation of $D$ for Non-normal $\boldsymbol{\varepsilon}$
-
-::: {style="font-size:80%"}
-
-Under the independence assumption, the **integration becomes a summation**
-
-\begin{align}
-\label{eq:kl-3}
-D_{KL} &\approx \sum_{i = 1}^{n} \hat{D_{KL}^{(i)}}, \\
-\hat{D_{KL}^{(i)}} &= \frac{1}{m}\sum_{j = 1}^{m} log\frac{\hat{p_i}(B_{ij})}{q(B_{ij})},
-\end{align}
-
-where $B$ is a matrix with $n$ rows and $m$ columns, and **each column is a set of simulated residuals**, $m$ is the **number of simulations**, $\hat{p_i}(.)$ is the **kernel density estimator** of $p_i(.)$ using simulated residuals in $B_i$.
-
-- The assumed variance for $q(.)$ is set to be $\sum_{b \in vec(B)}(b - \sum_{b \in vec(B)} b/nm)^2/(nm - 1)$.
-
-:::
-
----
-
-## 🎯Approximation of the Distance
-
-::: {style="font-size:80%"}
-
-Let's get back to the **original problem**. We have a fitted model on hand, and we want to know **how different the residuals are from a set of good residuals**. 
-
-- **However, the data generating process is typically unknown!** 
-
-  - The distance can not be computed!
-
-::: {.fragment}
-
-We can train a **computer vision model** to approximate $D$ with **a residual plot**
+We can train a **computer vision model** to estimate $D$ with **a residual plot**
 
 \begin{equation}
 \label{eq:d-approx}
@@ -391,44 +314,24 @@ where $V_{h \times w}(.)$ is a **plotting function** that saves a residual plot 
 
 :::
 
-:::
-
 ---
 
-## 🔄Generation of Training Data
+## 🔬Statistical Testing
 
-::: {style="font-size:80%"}
+The **null distribution** can be estimated by predicting $\widehat{D}$ for **a large number of null plots**. 
 
-### **Data generating process**
+- The **critical value** can be estimated by the **sample quantile** (e.g. $Q_{null}(0.95)$) of the null distribution.
 
-\begin{align}
-\label{eq:data-sim}
-\boldsymbol{y} &= \boldsymbol{1}_n + \boldsymbol{x}_1 + \beta_1\boldsymbol{x}_2 + \beta_2(\boldsymbol{z} + \beta_1\boldsymbol{w}) + \boldsymbol{k} \odot \boldsymbol{\varepsilon}, \\
-\boldsymbol{z} &\propto \text{He}_j(\boldsymbol{x}_1), \\
-\boldsymbol{w} &\propto \text{He}_j(\boldsymbol{x}_2), \\
-\boldsymbol{k} &= \sqrt{\boldsymbol{1}_n + b(2 - |a|)(\boldsymbol{x}_1 + \beta_1\boldsymbol{x}_2 - a\boldsymbol{1}_n)^2},
-\end{align}
+- The **$p$-value** is the proportion of null plots having estimated distance **greater than or equal to** the observed one.
 
-where $\text{He}_j(.)$ is the $j$th-order **probabilist's Hermite polynomials**, and the $\sqrt{(.)}$ and $(.)^2$ operators are element-wise operators.
-
-- The residuals are obtained by **regressing $y$ on $x_1$**. If $\beta_1 \neq 0$, $x_2$ will also be included as a predictor.
-
-:::
 
 
 ---
 
-## 💡Non-linearity
+## 💡Non-linearity {visibility="hidden"}
 
 
 :::: {.columns}
-
-::: {.column width="30%"}
-
-
-**Factor $j$**
-
-:::
 
 ::: {.column width="70%"}
 
@@ -460,12 +363,6 @@ bind_rows(dat_shape_1) %>%
 
 :::: {.columns}
 
-::: {.column width="30%"}
-
-**Factor $\sigma_\varepsilon$**
-
-:::
-
 ::: {.column width="70%"}
 
 ```{r fig.width=8, fig.height=2}
@@ -496,18 +393,11 @@ bind_rows(dat_shape_1) %>%
 ---
 
 
-## 💡Heteroskedasticity
+## 💡Heteroskedasticity {visibility="hidden"}
 
 
 
 :::: {.columns}
-
-::: {.column width="30%"}
-
-
-**Factor $a$**
-
-:::
 
 ::: {.column width="70%"}
 
@@ -546,12 +436,6 @@ map(c(-0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1), function(a) {
 
 :::: {.columns}
 
-::: {.column width="30%"}
-
-**Factor $b$**
-
-:::
-
 ::: {.column width="70%"}
 
 ```{r fig.width=8, fig.height=2}
@@ -588,7 +472,7 @@ map(c(3, 1.5, 1, 0.5), function(b) {
 
 ---
 
-## 💡Non-normality
+## 💡Non-normality {visibility="hidden"}
 
 
 
@@ -633,7 +517,7 @@ bind_rows(dat_shape_1, dat_shape_2, dat_shape_3, dat_shape_4) %>%
 ---
 
 
-## 💡Multiple Model Violations
+## 💡Training: Various Model Violations
 
 ::: {.columns}
 
@@ -711,7 +595,7 @@ bind_rows(dat_shape_1, dat_shape_2, dat_shape_3, dat_shape_4) %>%
 
 ---
 
-## 💡Predictor Distribution
+## 💡Training: Predictor Distribution
 
 
 ::: {.columns}
@@ -786,7 +670,7 @@ bind_rows(dat_dist_1, dat_dist_2, dat_dist_3, dat_dist_4) %>%
 
 ---
 
-## 💡Second Predictor
+## 💡Second Predictor {visibility="hidden"}
 
 
 
@@ -827,8 +711,6 @@ map_df(3:11, function(j) {
 
 :::
 
-
-
 ---
 
 ## 🏛️Model Architecture
@@ -836,13 +718,13 @@ map_df(3:11, function(j) {
 The architecture of the computer vision model is adapted from **VGG16** (Simonyan and Zisserman 2014).
 
 ```{r fig.align='center'}
-magick::image_read_pdf("figures/cvm.pdf", pages = 1)
+magick::image_read_pdf("figures/cnn.pdf", pages = 1)
 ```
 
 
 ---
 
-## 🏋️‍♂️Model Training
+## 🏋️‍♂️Model Training {visibility="hidden"}
 
 The computer vision model is trained on the **M3 high-performance computing platform** (www.massive.org.au), using **TensorFlow** (Abadi et al. 2016) and **Keras** (Chollet et al. 2015).
 
@@ -852,208 +734,252 @@ The computer vision model is trained on the **M3 high-performance computing plat
 
 - Multiple models with different image resolutions are trained, the optimized model has input size $32 \times 32$. 
 
+
 ---
 
-
-## 🌐Overview of Model Performance
-
-::: {.columns}
-
-::: {.column width="40%"}
-
+## `r fontawesome::fa_i("r-project")` `autovi` Package
 
 ::: {style="font-size:80%"}
 
-The model performs 
+The `autovi` package provides automated visual inference with **computer vision models**. It is available on CRAN and Github.
 
-- better for non-normality
-- worse for non-linearity
-- consistently across different datasets
+#### Core Methods
 
-::: {.fragment}
-
-The model performs worst on null plots (D = 0) as expected.
+- Null residuals simulation: `rotate_resid()`
+- Visual signal strength: `vss()`
+- Comprehensive checks: `check()` and `summary_plot()`
 
 :::
 
+---
 
-:::
+## 💡Example: Boston Housing
 
-:::
-
-::: {.column width="60%"}
-
-
+::: {style="font-size:80%"}
 
 ```{r}
-library(glue)
-test_pred <- readr::read_csv(here::here("data/test_pred.csv"))
-train_pred <- readr::read_csv(here::here("data/train_pred.csv"))
-meta <- readr::read_csv(here::here("data/meta.csv"))
-
-model_pred <- train_pred %>% 
-  left_join(meta) %>%
-  mutate(type = "train") %>%
-  bind_rows(test_pred %>% 
-              left_join(meta) %>%
-              mutate(type = "test")) %>%
-  filter(res == 32L)
-
-model_pred %>%
-  group_by(type, include_non_normal, include_heter, include_z) %>%
-  summarise(n = n(), 
-            RMSE = yardstick::rmse_vec(effect_size, vss)) %>%
-  mutate(violations = ifelse(include_z, "non-linearity", "null")) %>%
-  mutate(violations = ifelse(include_heter, glue("{violations} + heteroskedasticity"), violations)) %>%
-  mutate(violations = ifelse(include_non_normal, glue("{violations} + non-normality"), violations)) %>%
-  mutate(violations = gsub("null \\+ ", "", violations)) -> model_pred_plot_dat
-
+housing <- read_csv(here::here("paper_2/data/housing.csv"))
 ```
 
 
-```{r fig.height=6, fig.width=7.2}
-
-grey_grid <- expand.grid(c(0,1,2,3,4,5,6), c(1,2,3))
-
-model_pred_plot_dat <- model_pred_plot_dat %>%
-  mutate(violations = factor(violations, levels = c("null", 
-                                                    "non-linearity",
-                                                    "heteroskedasticity",
-                                                    "non-normality",
-                                                    "non-linearity + heteroskedasticity",
-                                                    "non-linearity + non-normality",
-                                                    "heteroskedasticity + non-normality",
-                                                    "non-linearity + heteroskedasticity + non-normality")))
-
+```{r}
+#| echo: true
+#| fig-height: 4
+#| fig-width: 6
+fitted_model <- lm(MEDV ~ RM + LSTAT + PTRATIO, data = housing)
 ggplot() +
-  geom_ribbon(aes(x = seq(-0.5, 7.5, 0.5), ymin = 0.5, ymax = 1.5), fill = "grey90") +
-  geom_ribbon(aes(x = seq(-0.5, 7.5, 0.5), ymin = 2.5, ymax = 3.5), fill = "grey90") +
-  geom_point(aes(grey_grid$Var1, grey_grid$Var2), col = "grey", size = 5) +
-  geom_point(aes(c(1,2,3), c(1,2,3)), size = 5) +
-  geom_point(aes(c(4,4,5,5,6,6,7,7,7), c(1,2,1,3,2,3,1,2,3)), size = 5) +
-  geom_segment(aes(x = c(4,5,6,7,7), xend = c(4,5,6,7,7), y = c(1,1,2,1,2), yend = c(2,3,3,2,3)), size = 1) +
-  geom_text(aes(c(-2, -2, -2), c(1, 2, 3), label = c("Non-linearity", "Heteroskedasticity", "Non-normality"))) +
-  geom_segment(aes(x = -0.5, xend = 7.5, y = 3.5, yend = 3.5)) +
-  geom_segment(aes(x = -0.5, xend = -0.5, y = 3.5, yend = 3.5 + 1.5 * 5)) +
-  geom_segment(aes(x = rep(-0.6, 4), xend = rep(-0.5, 4), y = 3.5 + seq(0, 1.5, 0.5) * 5, yend = 3.5 + seq(0, 1.5, 0.5) * 5)) +
-  geom_text(aes(x = rep(-1, 4), y = 3.5 + seq(0, 1.5, 0.5) * 5, label = c("  0", "0.5", "  1", "1.5")), size = 4) +
-  geom_point(data = model_pred_plot_dat, aes(as.numeric(violations) - 1, RMSE * 5 + 3.5, col = type), size = 3) +
-  geom_text(aes(-1.5, 0.75 * 5 + 3.5, label = "RMSE"), angle = 90) +
-  theme_light(base_size = 15) +
-  theme(panel.grid = element_blank(), 
-        axis.text = element_blank(), 
-        axis.ticks = element_blank()) +
-  xlab("") +
-  ylab("") +
-  xlim(c(-4, 8)) +
-  labs(col = "Dataset")
+  geom_point(aes(fitted(fitted_model), 
+                 resid(fitted_model))) +
+  theme_void()
 ```
 
 :::
 
-:::
+```{r}
+#| echo: false
+#| message: false
+#| fig-height: 4
+#| fig-width: 6
+library(autovi)
+checker <- auto_vi(fitted_model = fitted_model, 
+                   keras_model = get_keras_model("vss_phn_32"))
+checker$check_result <- readRDS(here::here("paper_2/data/check_result_1.rds"))
+```
 
 ---
 
-## 📈Model Violations Index
+## `r fontawesome::fa_i("r-project")` `rotate_resid()`
 
 ::: {style="font-size:80%"}
 
-For a consistent data generating process, $D$ typically **increases logarithmically with the number of observations**.
-
-This behaviour comes from the relationship $D = \text{log}(1 + D_{KL})$, where $D_{KL} = \sum_{i=1}^{n}D_{KL}^{(i)}$ under the assumption of independence.
-
-Therefore, the **Model Violations Index** (MVI) for determining the **extent of model violations** can be proposed as
-
-\begin{equation}
-\label{eq:mvi}
-\text{MVI} = C + \widehat{D} - log(n),
-\end{equation}
-
-where $C$ is a large enough constant keeping the result positive. 
-
-
-:::
-
----
-
-
-## 📈Model Violations Index
-
-```{r fig.align='center'}
-magick::image_read_pdf("figures/poly-index-1.pdf", pages = 1)
-```
-
----
-
-
-## 📈Model Violations Index
-
-```{r fig.align='center'}
-magick::image_read_pdf("figures/heter-index-1.pdf", pages = 1)
-```
-
----
-
-## 🔬Statistical Testing Based on the Approximated Distance
-
-::: {style="font-size:80%"}
-
-We have proposed a statistical test based on the approximated distance
-
-- The **null distribution** can be estimated by predicting approximated distance for **a large number of null plots**. 
-
-- The **critical value** can be estimated by the **sample quantile** (e.g. $Q_{null}(0.95)$) of the null distribution.
-
-- The **$p$-value** is the proportion of null plots having approximated distance **greater than or equal to** the observed one.
-
-:::
-
-
----
-
-## 🔬Statistical Testing Based on the Approximated Distance
-
-
+Null residuals are simulated from the fitted model assuming it is **correctly specified**.
 
 ::: {.columns}
 
-::: {.column width="100%"}
+::: {.column width="50%"}
+
+```{.r}
+checker$rotate_resid()
+```
 
 ```{r}
-my_vi <- autovi::auto_vi(lm(mpg ~ ., data = mtcars))
-my_vi$check_result <- readRDS("data/test.rds")
+#| echo: false
+#| message: false
+checker$rotate_resid()
+```
 
-p1 <- my_vi$plot_resid()
-p2 <- my_vi$summary_plot() +
-  ggtitle("", subtitle = glue("P-value = {my_vi$check_result$p_value}")) +
-  theme(legend.position = "bottom", legend.box = "vertical") +
-  labs(linetype = "") +
-  xlab(expression(hat(D))) +
-  scale_linetype(labels = c("95% quantile of the null distribution", expression(hat(D))))
+:::
 
-patchwork::wrap_plots(p1, p2)
+::: {.column width="50%"}
+
+```{.r}
+checker$rotate_resid() |>
+  checker$plot_resid()
+```
+
+
+```{r}
+#| echo: false
+#| message: false
+#| fig-height: 4
+#| fig-width: 6
+checker$rotate_resid() |>
+  checker$plot_resid()
 ```
 
 :::
 
 :::
 
+:::
 
 ---
 
-## 🧪Human Subject Experiment
+## `r fontawesome::fa_i("r-project")` `vss()`
 
-We have collected $7974$ responses to $1152$ lineups in a **human subject experiment** conducted in the first project (Li et al. 2023). 
 
-Differences:
+::: {style="font-size:80%"}
 
-- non-linearity and heteroskedasticity **do not co-exist in one lineup**.
-- non-normality and multiple predictors **are not considered** in the experimental design.
+::: {.columns}
+
+::: {.column width="50%"}
+
+#### Visual signal strength of the actual residual plot
+
+```{.r}
+checker$vss()
+```
+
+```{r}
+#| echo: false
+#| message: true
+checker$vss()
+```
+
+:::
+
+::: {.column width="50%"}
+
+#### Visual signal strength of a null plot
+
+```{.r}
+checker$rotate_resid() |>
+  checker$vss()
+```
+
+
+```{r}
+#| echo: false
+#| message: true
+checker$rotate_resid() |>
+  checker$vss()
+```
+
+
+:::
+
+:::
+
+:::
 
 ---
 
-## 🧪Compared to Visual Tests
+## `r fontawesome::fa_i("r-project")` `check()`
+
+```{.r}
+checker$check()
+checker
+```
+
+```{r}
+#| echo: false
+#| message: true
+checker
+```
+
+---
+
+## `r fontawesome::fa_i("r-project")` `summary_plot()`
+
+```{r}
+#| echo: true
+checker$summary_plot()
+```
+
+
+---
+
+## 💡Example: Left-triangle
+
+::: {style="font-size:70%"}
+
+Breusch–Pagan test $p$-value = 0.0457
+
+```{r fig.height=4, fig.width=6}
+set.seed(452)
+ori_x <- rand_lognormal()
+dat <- heter_model(b = 0, x = closed_form(~-ori_x))$gen(300)
+
+mod <- lm(y ~ x, data = dat)
+my_vi <- autovi::auto_vi(fitted_model = mod)
+my_vi$plot_resid() -> p1
+```
+
+```{r dpi=300}
+my_vi$check_result <- readRDS(here::here("paper_2/data/fig1_check.rds"))
+my_vi$summary_plot() +
+  theme(legend.position = "bottom", legend.box="vertical") +
+  labs(linetype = "") -> p2
+
+patchwork::wrap_plots(p1, p2, ncol = 2)
+```
+
+:::
+
+---
+
+## 💡Example: Dinosaur
+
+::: {style="font-size:70%"}
+
+::: {.columns}
+
+::: {.column width="50%"}
+
+Ramsey Regression Equation Specification Error test $p$-value = 0.742
+
+Breusch–Pagan test $p$-value = 0.36
+
+Shapiro-Wilk test $p$-value = 9.21e-05
+
+```{r fig.height=4, fig.width=6, dpi=300}
+dino <- datasauRus::datasaurus_dozen %>% filter(dataset == "dino")
+mod <- lm(y ~ ., data = select(dino, -dataset))
+
+my_vi <- autovi::auto_vi(fitted_model = mod)
+my_vi$plot_resid()
+```
+
+:::
+
+::: {.column width="50%"}
+
+```{r fig.height=4.5, fig.width=4.5, dpi=300}
+my_vi$check_result <- readRDS(here::here("paper_2/data/dino_check.rds"))
+my_vi$summary_plot() +
+  theme(legend.position = "bottom", legend.box="vertical") +
+  labs(linetype = "")
+```
+
+:::
+
+:::
+
+:::
+
+---
+
+## 🧪Compared to Visual Tests {visibility="hidden"}
 
 ```{r fig.align='center'}
 magick::image_read_pdf("figures/human-mosaic-1.pdf", pages = 1)
@@ -1061,7 +987,7 @@ magick::image_read_pdf("figures/human-mosaic-1.pdf", pages = 1)
 
 ---
 
-## 🧪Compared to RESET and BP Tests
+## 🧪Compared to RESET and BP Tests {visibility="hidden"}
 
 ```{r fig.align='center'}
 magick::image_read_pdf("figures/conv-mosaic-1.pdf", pages = 1)
@@ -1069,107 +995,44 @@ magick::image_read_pdf("figures/conv-mosaic-1.pdf", pages = 1)
 
 ---
 
-## 🧪Power Comparison
+## 🧪Power Comparison {visibility="hidden"}
 
 ```{r fig.align='center'}
-magick::image_read_pdf("figures/power-1.pdf", pages = 1)
+magick::image_read_pdf("figures/fig-power-1.pdf", pages = 1)
 ```
 
 ---
 
-## 💡Example: Left-triangle
+## 🌐Shiny Application {.center}
 
+Don't want to install `TensorFlow`? 
 
-```{r fig.align='center'}
-magick::image_read_pdf("figures/false-check-1.pdf", pages = 1)
-```
-
-## 💡Example: Left-triangle
-
-```{r fig.align='center'}
-magick::image_read_pdf("figures/false-lineup-1.pdf", pages = 1)
-```
-
-## 💡Example: Boston Housing
-
-$MEDV = \beta_0 + \beta_1RM + \beta_2LSTAT + \beta_3PTRATIO + \varepsilon$
-
-```{r fig.align='center'}
-magick::image_read_pdf("figures/boston-check-1.pdf", pages = 1)
-```
-
-## 💡Example: Boston Housing
-
-```{r fig.align='center'}
-magick::image_read_pdf("figures/boston-lineup-1.pdf", pages = 1)
-```
-
-## 💡Example: Dinosaur
-
-$y = \beta_0 + \beta_1x + \varepsilon$
-
-```{r fig.align='center'}
-magick::image_read_pdf("figures/dino-check-1.pdf", pages = 1)
-```
-
-## 💡Example: Dinosaur
-
-```{r fig.align='center'}
-magick::image_read_pdf("figures/dino-lineup-1.pdf", pages = 1)
-```
+Try our shiny web application: <https://shorturl.at/DNWzt>
 
 ---
 
-## 🎬Conclusions
+## 🧩Extensions
 
-::: {style="font-size:80%"}
+To diagnose models other than the **Classical Normal Linear Regression Model** (CNLRM), one can:
 
-In this study, we have
-
-- introduced a **distance measure** to effectively **captures the magnitude of model violations**
-
-- proposed and trained a **computer vision model** to **approximate this distance**
-
-- developed a **statistical testing procedure** and a **Model Violations Index** based on the approximated distance
-
-
-:::
+1. Use raw residuals, but be aware that violations **may not be identifiable and the test could be two-sided**.
+2. Use transformed residuals that are **roughly normally distributed**.
+3. **Reuse the pre-trained convolutional blocks** and train a new computer vision model with an appropriate distance measure.
 
 ---
 
-## 🎬Conclusions
+## 🎬Takeaway
 
-::: {style="font-size:80%"}
+You can use `autovi` to
 
-- The proposed test shows **comparable power** to conventional ones, but there's room for further **enhancing its robustness** against **minor deviations** from model assumptions.
+- Evaluate lineups of residual plots of linear regression models
 
-- Our method offers significant value by **easing analysts' workload** in **assessing residual plots**. 
+- **Captures the magnitude of model violations** through visual signal strength
 
-- While we encourage **continued manual review of residual plots** for **insightful analysis**, our approach serves as a valuable tool for **automating** or **supplementing** the diagnostic process.
-
-:::
+- Automatically **detect model misspecification** using a visual test
 
 ---
 
-
-## 📅Timeline
-
-```{r}
-data.frame(Date = c("Mar",
-                    "April", 
-                    "May",
-                    "July",
-                    "",
-                    "Aug"), 
-           Event = c("Finish and submit the second paper",
-                     "Develop a web interface for the automatic visual inference system",
-                     "Clean and publish R packages to CRAN",
-                     "Finish the third paper",
-                     "Attend the useR! conference",
-                     "Submit thesis")) %>%
-  kableExtra::kable(booktabs = TRUE) %>%
-  kableExtra::kable_styling() 
-```
 
 ## Thanks! Any questions? {.center}
 
@@ -1183,7 +1046,7 @@ data.frame(Date = c("Mar",
   - [`visage`: Visual Inference for Linear Regression Diagnostics](https://github.com/TengMCing/visage){target="_blank"}
   - [`autovi`: Automated Visual Inference with Computer Vision Models](https://github.com/TengMCing/autovi){target="_blank"}
 
-- ![](figures/github-mark/github-mark.png){height=1em width=1em style="vertical-align:middle"} [Slides](https://github.com/TengMCing/PhD/Milestone_presentation_3){target="_blank"}
+- ![](figures/github-mark/github-mark.png){height=1em width=1em style="vertical-align:middle"} [Slides](https://github.com/TengMCing/use_r/paper_2){target="_blank"}
 
 
 :::
