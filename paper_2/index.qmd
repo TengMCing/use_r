@@ -799,6 +799,8 @@ Null residuals are simulated from the fitted model assuming it is **correctly sp
 ::: {.column width="50%"}
 
 ```{.r}
+checker <- auto_vi(fitted_model = fitted_model, 
+                   keras_model = get_keras_model("vss_phn_32"))
 checker$rotate_resid()
 ```
 

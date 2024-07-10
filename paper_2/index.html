@@ -620,7 +620,9 @@ D &amp;= \log\left(1 + \int_{\mathbb{R}^{n}}\log\frac{p(\boldsymbol{e})}{q(\bold
 <p>Null residuals are simulated from the fitted model assuming it is <strong>correctly specified</strong>.</p>
 <div class="columns">
 <div class="column" style="width:50%;">
-<div class="sourceCode" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>checker<span class="sc">$</span><span class="fu">rotate_resid</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>checker <span class="ot">&lt;-</span> <span class="fu">auto_vi</span>(<span class="at">fitted_model =</span> fitted_model, </span>
+<span id="cb2-2"><a href="#cb2-2"></a>                   <span class="at">keras_model =</span> <span class="fu">get_keras_model</span>(<span class="st">"vss_phn_32"</span>))</span>
+<span id="cb2-3"><a href="#cb2-3"></a>checker<span class="sc">$</span><span class="fu">rotate_resid</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 489 × 2
