@@ -7,7 +7,7 @@ format:
     transition: fade
     incremental: true 
     theme: default
-    footer: "Slides URL: <https://patrickli-useR.netlify.app>"
+    footer: "Slides URL: <https://autovi.netlify.app>"
     logo: figures/monash-stacked-blue-rgb.png
 ---
 
@@ -1042,11 +1042,13 @@ You can use `autovi` to
 
 ::: {.nonincremental}
 
-- 📦 R Packages
-  - [`visage`: Visual Inference for Linear Regression Diagnostics](https://github.com/TengMCing/visage){target="_blank"}
-  - [`autovi`: Automated Visual Inference with Computer Vision Models](https://github.com/TengMCing/autovi){target="_blank"}
+`r fontawesome::fa_i("github")` tengmcing
 
-- ![](figures/github-mark/github-mark.png){height=1em width=1em style="vertical-align:middle"} [Slides](https://github.com/TengMCing/use_r/paper_2){target="_blank"}
+`r fontawesome::fa_i("envelope")` patrick.li@monash.edu
+
+📦 [`autovi`](https://github.com/TengMCing/autovi){target="_blank"}
+
+📜 [Slides](https://github.com/TengMCing/use_r/tree/master/paper_2){target="_blank"}
 
 
 :::

@@ -7,7 +7,7 @@ format:
     transition: fade
     incremental: true 
     theme: default
-    footer: "Slides URL: <https://patrickli-dec11talk.netlify.app>"
+    footer: "Slides URL: <https://patrickli-use-r-1.netlify.app>"
     logo: figures/monash-stacked-blue-rgb.png
     self-contained: true
 ---
@@ -36,6 +36,12 @@ Monash University, Australia
 <!-- ^1^Monash University, Australia. ^2^Australian National University, Australia. ^3^University of Nebraska, USA. -->
 
 <!-- ::: -->
+
+---
+
+## About Me
+
+I am a PhD student in the department of Econometrics and Business Statistics, Monash University, Australia. 
 
 ---
 
@@ -739,8 +745,8 @@ However, we expect the behavior of the conventional test and the visual test to 
 
 - 📦 [R Package: TengMCing/visage](https://github.com/TengMCing/visage){target="_blank"}
 
-- ![](figures/github-mark/github-mark.png){height=1em width=1em style="vertical-align:middle"} [Github repo for slides: TengMCing/use_r](https://github.com/TengMCing/use_r){target="_blank"}
+- ![](figures/github-mark/github-mark.png){height=1em width=1em style="vertical-align:middle"} [Github repo for slides: TengMCing/use_r/paper_1](https://github.com/TengMCing/use_r/paper_1){target="_blank"}
 
-- 📄 [Preprint paper: arXiv:2308.05964](http://arxiv.org/abs/2308.05964){target="_blank"}
+- 📄 [DOI: 10.1080/10618600.2024.2344612](https://doi.org/10.1080/10618600.2024.2344612){target="_blank"}
 
 :::
